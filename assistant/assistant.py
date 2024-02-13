@@ -1,6 +1,7 @@
-import openai
-from langchain.prompts import ChatPromptTemplate
-from langchain.chat_models import ChatOpenAI
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
 
 def prepare_prompt(system):
     prompt = ChatPromptTemplate.from_messages([
@@ -9,11 +10,29 @@ def prepare_prompt(system):
     ])
     return prompt
 
-def prepare_model(open_ai_key, prompt, temperature=0):
-    openai.openai_key = open_ai_key
-    model = ChatOpenAI(temperature=temperature)
-    chain = prompt | model
+def prepare_model(openai_api_key, prompt, temperature=0):
+    output_parser = StrOutputParser()
+    model = ChatOpenAI(openai_api_key=openai_api_key,model="gpt-3.5-turbo-1106", temperature=temperature)
+    chain = (
+        {"input": RunnablePassthrough()} 
+        | prompt
+        | model
+        | output_parser
+    )
     return chain
 
 def exec_model(chain, input):
-    chain.invoke({"input": input})
+    result = chain.invoke({"input": input})
+    return result
+
+def load_system(system):
+    with open(system, 'r') as f:
+        system = f.read()
+    return system
+
+def summarize(system, input, open_ai_key, temperature=0):
+    system = load_system(system)
+    prompt = prepare_prompt(system)
+    model = prepare_model(open_ai_key, prompt, temperature)
+    result = exec_model(model, input)
+    return result
