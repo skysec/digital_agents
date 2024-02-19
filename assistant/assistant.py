@@ -12,7 +12,7 @@ def prepare_prompt(system):
 
 def prepare_model(openai_api_key, prompt, temperature=0):
     output_parser = StrOutputParser()
-    model = ChatOpenAI(openai_api_key=openai_api_key,model="gpt-3.5-turbo-1106", temperature=temperature)
+    model = ChatOpenAI(openai_api_key=openai_api_key,model="gpt-4-0613", temperature=temperature)
     chain = (
         {"input": RunnablePassthrough()} 
         | prompt
